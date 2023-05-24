@@ -1,5 +1,3 @@
-import sys
-sys.path.append('..')
 import time
 
 # torch
@@ -209,16 +207,8 @@ def main():
     print("Initiating model training...")
     device = get_device()
 
-    # instantiating our dataset object and create data loader
-    mel_spectrogram = torchaudio.transforms.MelSpectrogram(
-        sample_rate=SAMPLE_RATE,
-        n_fft=2048,
-        hop_length=512,
-        n_mels=128
-    )
-
     # dataset/dataloader
-    train_dataset = VoiceDataset(TRAIN_FILE, mel_spectrogram, device)
+    train_dataset = VoiceDataset(TRAIN_FILE, device=device)
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     # test_dataset = VoiceDataset(TEST_FILE, mel_spectrogram, device, time_limit_in_secs=3)
