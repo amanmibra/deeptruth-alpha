@@ -6,7 +6,7 @@ from cnn import CNNetwork
 from preprocess import process_raw_wav, _wav_to_spec
 
 model = CNNetwork()
-state_dict = torch.load('models/deeptruth_20230524_013021.pth')
+state_dict = torch.load('models/deeptruth_20230524_091319.pth')
 model.load_state_dict(state_dict)
 
 LABELS = ["clone", "pure"]
