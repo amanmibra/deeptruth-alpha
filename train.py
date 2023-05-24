@@ -16,7 +16,7 @@ from dataset import VoiceDataset
 from cnn import CNNetwork
 
 # script defaults
-BATCH_SIZE = 32
+BATCH_SIZE = 10
 EPOCHS = 100
 LEARNING_RATE = 0.001
 
@@ -219,7 +219,6 @@ def main():
 
     # dataset/dataloader
     train_dataset = VoiceDataset(TRAIN_FILE, mel_spectrogram, device)
-    print(f"lenth {len(train_dataset)}")
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     # test_dataset = VoiceDataset(TEST_FILE, mel_spectrogram, device, time_limit_in_secs=3)
@@ -233,7 +232,15 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
     # train model
-    model = train.call(model, train_dataloader, loss_fn, optimizer, device, EPOCHS)
+    model = train.call(
+        model,
+        train_dataloader,
+        loss_fn,
+        optimizer,
+        device,
+        EPOCHS,
+        # wandb_enabled=True
+    )
 
     # save model
     save_model(model)

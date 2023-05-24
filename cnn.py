@@ -50,7 +50,8 @@ class CNNetwork(nn.Module):
             nn.MaxPool2d(kernel_size=2)
         )
         self.flatten = nn.Flatten()
-        self.linear = nn.Linear(128 * 9 * 19, 2)
+        self.linear = nn.Linear(128 * 9 * 31, 2)
+        self.dropout = nn.Dropout(p=0.2)
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, input_data):
@@ -59,6 +60,7 @@ class CNNetwork(nn.Module):
         x = self.conv3(x)
         x = self.conv4(x)
         x = self.flatten(x)
+        x = self.dropout(x)
         logits = self.linear(x)
         predictions = self.softmax(logits)
         return predictions
