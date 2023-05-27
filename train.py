@@ -100,7 +100,7 @@ def train(
 
         if test_dataloader:
             # test model
-            test_epoch_loss, test_epoch_acc = validate_epoch.call(model, test_dataloader, loss_fn, modal_device)
+            test_epoch_loss, test_epoch_acc = validate_epoch.call(model, test_dataloader, loss_fn, optimizer, modal_device)
             
             # testing metrics
             testing_loss.append(test_epoch_loss/len(test_dataloader))
@@ -114,7 +114,8 @@ def train(
         print ("-------------------------------------------------------- \n")
     
     end = time.time()
-    wandb.finish()
+    if wandb_enabled:
+        wandb.finish()
     print("-------- Finished Training --------")
     print("-------- Total Time -- {:.2f}s --------".format(end - begin))
 
@@ -165,7 +166,7 @@ def train_epoch(model, train_dataloader, loss_fn, optimizer, device):
         Mount.from_local_file(local_path='cnn.py'),
     ],
 )
-def validate_epoch(model, test_dataloader, loss_fn, device):
+def validate_epoch(model, test_dataloader, loss_fn, optimizer, device):
     from tqdm import tqdm
 
     test_loss = 0.0
@@ -180,6 +181,8 @@ def validate_epoch(model, test_dataloader, loss_fn, device):
 
             output = model(wav)
             loss = loss_fn(output, target)
+
+            optimizer.zero_grad()
 
             test_loss += loss.item()
             prediciton = torch.argmax(output, 1)
@@ -211,8 +214,8 @@ def main():
     train_dataset = VoiceDataset(TRAIN_FILE, device=device)
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-    # test_dataset = VoiceDataset(TEST_FILE, mel_spectrogram, device, time_limit_in_secs=3)
-    # test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    test_dataset = VoiceDataset(TEST_FILE, device=device)
+    test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     # construct model
     model = CNNetwork()
@@ -229,6 +232,7 @@ def main():
         optimizer,
         device,
         EPOCHS,
+        test_dataloader=test_dataloader,
         # wandb_enabled=True
     )
 
