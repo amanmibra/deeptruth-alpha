@@ -18,16 +18,18 @@ class VoiceDataset(Dataset):
 
     def __init__(
             self,
-            data_directory,
+            pure_data_directories,
+            clone_data_directories,
             transformation=DEFAULT_TRANSFORMATION,
             device=DEFAULT_DEVICE,
             target_sample_rate=DEFAULT_SAMPLE_RATE,
             time_limit_in_secs=DEFAULT_TIME_LIMIT,
         ):
         # file processing
-        self._data_path = os.path.join(data_directory)
-        self._labels = os.listdir(self._data_path)
-        self.label_mapping = {label: i for i, label in enumerate(self._labels)}
+        self._pure_paths = [os.path.join(dir) for dir in pure_data_directories]
+        self._clone_paths = [os.path.join(dir) for dir in clone_data_directories]
+        self.labels = ["pure", "clone"]
+        self.label_mapping = {label: i for i, label in enumerate(self.labels)}
         self.audio_files_labels = self._join_audio_files()
 
         self.device = device
@@ -48,11 +50,9 @@ class VoiceDataset(Dataset):
 
     def _process_wavs(self):
         wavs = []
-        for file, label in self.audio_files_labels:
-            filepath = os.path.join(self._data_path, label, file)
-
+        for filepath, label in self.audio_files_labels:
             # load wav
-            wav, sr = torchaudio.load(filepath, normalize=True)
+            wav, sr = torchaudio.load(filepath)
 
             # modify wav file, if necessary
             wav = wav.to(self.device)
@@ -71,11 +71,13 @@ class VoiceDataset(Dataset):
     def _join_audio_files(self):
         """Join all the audio file names and labels into one single dimenional array"""
         audio_files_labels = []
+        files = {"pure": self._pure_paths, "clone": self._clone_paths}
 
-        for label in self._labels:
-            label_path = os.path.join(self._data_path, label)
-            for f in os.listdir(label_path):
-                audio_files_labels.append((f, label))
+        for label in ["pure", "clone"]:
+            for path in files[label]:
+                for f in os.listdir(path):
+                    audio_filepath = os.path.join(path, f)
+                    audio_files_labels.append((audio_filepath, label))
 
         return audio_files_labels
 
